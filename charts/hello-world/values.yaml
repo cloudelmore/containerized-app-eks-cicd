@@ -1,0 +1,66 @@
+# Default settings for the hello-world chart.
+# The pipeline overrides image.repository and image.tag on every deploy.
+
+image:
+  repository: hello-world   # replaced with the ECR repository URL at deploy time
+  tag: latest               # replaced with the git commit tag at deploy time
+  pullPolicy: IfNotPresent
+
+# Only used if autoscaling is turned off. With the HPA on, it owns the replica count.
+replicaCount: 1
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
+    alb.ingress.kubernetes.io/success-codes: "200"
+  path: /
+
+# Sized so 3 app pods fit on a t3.small and a 4th does not.
+# Node 1 free CPU: 1930m allocatable - 450m system = 1480m.  3 x 475m = 1425m fits.
+# A new node: ~1805m free.  4 x 475m = 1900m does not fit, so the 4th pod goes
+# Pending and the Cluster Autoscaler adds a node.
+resources:
+  requests:
+    cpu: 475m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 384Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1        # 1 node x 1 pod when idle
+  maxReplicas: 12       # 4 nodes x 3 pods
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 50
+
+# Spread pods across nodes: each node gets one before any node gets a second
+topologySpread:
+  enabled: true
+  maxSkew: 1
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+    
