@@ -1,0 +1,29 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl.bak
+override.tf
+override.tf.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Kubernetes / local
+.kube/
+*.kubeconfig
+
+# Secrets: never commit real repo credentials
+argocd/*-secret.yaml
+!argocd/*-secret.example.yaml
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

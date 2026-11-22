@@ -1,0 +1,8 @@
+# Use LF line endings in the repo and in every checkout, Windows included.
+# Shell scripts and Terraform templates run on Linux and break with CRLF.
+* text=auto eol=lf
+
+# Binary files: never touch them
+*.png binary
+*.jpg binary
+*.zip binary
